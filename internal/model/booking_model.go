@@ -1,0 +1,41 @@
+package model
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/shariski/room-booking/internal/domain"
+)
+
+type BookingResponse struct {
+	ID        uuid.UUID `json:"id"`
+	RoomID    uuid.UUID `json:"room_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	StartDate time.Time `json:"start_date"`
+	EndDate   time.Time `json:"end_date"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type CreateBookingRequest struct {
+	RoomID    uuid.UUID `json:"room_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	StartDate time.Time `json:"start_date"`
+	EndDate   time.Time `json:"end_date"`
+}
+
+type DeleteBookingRequest struct {
+	ID uuid.UUID `json:"id"`
+}
+
+func BookingToResponse(booking *domain.Booking) *BookingResponse {
+	return &BookingResponse{
+		ID:        booking.ID,
+		RoomID:    booking.RoomID,
+		UserID:    booking.UserID,
+		StartDate: booking.StartDate,
+		EndDate:   booking.EndDate,
+		CreatedAt: booking.CreatedAt,
+		UpdatedAt: booking.UpdatedAt,
+	}
+}

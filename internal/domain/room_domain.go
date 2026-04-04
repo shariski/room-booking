@@ -1,9 +1,13 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Room struct {
-	ID          string
+	ID          uuid.UUID
 	Name        string
 	Type        string
 	Description string

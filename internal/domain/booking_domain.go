@@ -1,11 +1,15 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Booking struct {
-	ID        string
-	RoomID    string
-	UserID    string
+	ID        uuid.UUID
+	RoomID    uuid.UUID
+	UserID    uuid.UUID
 	StartDate time.Time
 	EndDate   time.Time
 	CreatedAt time.Time
