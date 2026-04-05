@@ -7,6 +7,8 @@ services:
       POSTGRES_USER: bobobox
       POSTGRES_PASSWORD: bobobox
       POSTGRES_DB: bobobox
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
   redis:

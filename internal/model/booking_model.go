@@ -8,13 +8,14 @@ import (
 )
 
 type BookingResponse struct {
-	ID        uuid.UUID `json:"id"`
-	RoomID    uuid.UUID `json:"room_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	StartDate time.Time `json:"start_date"`
-	EndDate   time.Time `json:"end_date"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uuid.UUID  `json:"id"`
+	RoomID    uuid.UUID  `json:"room_id"`
+	UserID    uuid.UUID  `json:"user_id"`
+	StartDate time.Time  `json:"start_date"`
+	EndDate   time.Time  `json:"end_date"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }
 
 type CreateBookingRequest struct {
@@ -38,5 +39,6 @@ func BookingToResponse(booking *domain.Booking) *BookingResponse {
 		EndDate:   booking.EndDate,
 		CreatedAt: booking.CreatedAt,
 		UpdatedAt: booking.UpdatedAt,
+		DeletedAt: booking.DeletedAt,
 	}
 }
