@@ -30,9 +30,14 @@ func (u *BookingUsecase) Create(ctx context.Context, request *model.CreateBookin
 	booking, err := u.repo.Create(ctx, *bookingData)
 	if err != nil {
 		var dbErr *pgconn.PgError
+		// 23P01: exclusion constraint violation — overlapping booking dates
 		if errors.As(err, &dbErr) && dbErr.Code == "23P01" {
 			slog.WarnContext(ctx, "Booking conflict with overlapping bookings", "error", err)
 			return nil, model.NewConflictError("Booking conflict with overlapping dates")
+			// 23514: check constraint - end date should be larger than start date
+		} else if errors.As(err, &dbErr) && dbErr.Code == "23514" {
+			slog.WarnContext(ctx, "Booking start date cannot larger than end date", "error", err)
+			return nil, model.NewErrBadRequest("Booking start date cannot larger than end date")
 		}
 		slog.WarnContext(ctx, "Failed to create booking", "error", err)
 		return nil, err

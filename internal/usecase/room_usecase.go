@@ -39,6 +39,7 @@ func (u *RoomUsecase) Get(ctx context.Context, request *model.GetRoomRequest) (*
 		json.Unmarshal([]byte(cached), &room)
 		return &room, nil
 	} else {
+		// no return error, just fallback to DB
 		slog.WarnContext(ctx, "Failed to get redis cache", "error", err)
 	}
 

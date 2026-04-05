@@ -20,6 +20,7 @@ func NewBookingRepository(db *sql.DB) *BookingRepository {
 func (r *BookingRepository) Create(ctx context.Context, booking domain.Booking) (*domain.Booking, error) {
 	query := "insert into bookings (room_id, user_id, start_date, end_date) values ($1, $2, $3, $4) returning id, created_at, updated_at"
 
+	// [) range: end date exclusive, a room can be checked out in the same day as check in
 	err := r.db.QueryRowContext(ctx, query, booking.RoomID, booking.UserID, booking.StartDate, booking.EndDate).Scan(
 		&booking.ID,
 		&booking.CreatedAt,

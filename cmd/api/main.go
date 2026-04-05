@@ -28,11 +28,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if err := db.Ping(); err != nil {
+		log.Fatal("DB connection failed:", err)
+	}
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     config.RedisAddr,
 		Password: config.RedisPass,
 	})
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		log.Fatal("Redis connection failed:", err)
+	}
 
 	validator := validator.New()
 
