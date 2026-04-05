@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -44,6 +46,10 @@ func (u *RoomUsecase) Get(ctx context.Context, request *model.GetRoomRequest) (*
 	}
 
 	room, err := u.Repo.Get(ctx, request.ID)
+	if errors.Is(err, sql.ErrNoRows) {
+		slog.WarnContext(ctx, "Room not found", "error", err)
+		return nil, model.NewErrNotFound("Room not found")
+	}
 	if err != nil {
 		slog.WarnContext(ctx, "Failed to get room", "error", err)
 		return nil, err

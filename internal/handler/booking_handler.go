@@ -23,6 +23,16 @@ func NewBookingHandler(u *usecase.BookingUsecase, v *validator.Validate) *Bookin
 	}
 }
 
+// @Summary Create a booking
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body model.CreateBookingRequest true "Booking request"
+// @Success 201 {object} model.BookingResponse
+// @Failure 409 {object} model.ErrorResponse
+// @Failure 401 {object} model.ErrorResponse
+// @Router /bookings [post]
 func (h *BookingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req model.CreateBookingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -50,6 +60,15 @@ func (h *BookingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, booking)
 }
 
+// @Summary Cancel a booking
+// @Tags bookings
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Booking ID"
+// @Success 200 {object} model.BookingResponse
+// @Failure 404 {object} model.ErrorResponse
+// @Failure 401 {object} model.ErrorResponse
+// @Router /bookings/{id} [delete]
 func (h *BookingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	paramID := r.PathValue("id")
 	bookingID, err := uuid.Parse(paramID)

@@ -18,3 +18,22 @@ services:
     command: redis-server --requirepass bobobox
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=bobobox
+      - DB_PASSWORD=bobobox
+      - DB_NAME=bobobox
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=bobobox
+      - JWT_SECRET=secret
+      - PORT=:8080

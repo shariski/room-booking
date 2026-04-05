@@ -13,13 +13,23 @@ import (
 	"github.com/go-playground/validator/v10"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/redis/go-redis/v9"
+	_ "github.com/shariski/room-booking/docs"
 	"github.com/shariski/room-booking/internal/config"
 	"github.com/shariski/room-booking/internal/handler"
 	"github.com/shariski/room-booking/internal/middleware"
 	"github.com/shariski/room-booking/internal/repository"
 	"github.com/shariski/room-booking/internal/usecase"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
+// @title Room Booking API
+// @version 1.0
+// @description Hotel room booking API for Bobobox
+// @host localhost:8080
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	config := config.Load()
 
@@ -57,6 +67,7 @@ func main() {
 	authMiddleware := middleware.AuthMiddleware(config.JWTSecret)
 
 	mux := http.NewServeMux()
+	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
 	mux.HandleFunc("POST /users", userHandler.Create)
 	mux.HandleFunc("POST /login", userHandler.Login)
 	mux.Handle("GET /rooms", authMiddleware(http.HandlerFunc(roomHandler.List)))

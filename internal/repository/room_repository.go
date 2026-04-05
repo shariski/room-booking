@@ -3,12 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/shariski/room-booking/internal/domain"
-	"github.com/shariski/room-booking/internal/model"
 )
 
 type RoomRepository struct {
@@ -68,10 +66,6 @@ func (r *RoomRepository) Get(ctx context.Context, id uuid.UUID) (*domain.Room, e
 		&room.CreatedAt,
 		&room.UpdatedAt,
 	)
-	if errors.Is(err, sql.ErrNoRows) {
-		slog.WarnContext(ctx, "Room not found", "error", err)
-		return nil, model.NewErrNotFound("Room not found")
-	}
 	if err != nil {
 		slog.WarnContext(ctx, "Failed to do query", "error", err)
 		return nil, err

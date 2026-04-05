@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,13 +21,17 @@ func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
 				return []byte(jwtSecret), nil
 			})
 			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(model.ErrorResponse{Message: "Unauthorized"})
 				return
 			}
 
 			claims, ok := token.Claims.(*model.Auth)
 			if !ok || !token.Valid {
+				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(model.ErrorResponse{Message: "Unauthorized"})
 				return
 			}
 

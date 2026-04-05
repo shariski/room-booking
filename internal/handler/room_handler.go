@@ -22,6 +22,14 @@ func NewRoomHandler(u *usecase.RoomUsecase, v *validator.Validate) *RoomHandler 
 	}
 }
 
+// @Summary List rooms
+// @Tags rooms
+// @Produce json
+// @Security BearerAuth
+// @Param type query string false "Filter by room type (e.g. single, double, suite)"
+// @Success 200 {array} model.RoomResponse
+// @Failure 401 {object} model.ErrorResponse
+// @Router /rooms [get]
 func (h *RoomHandler) List(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	qType := query.Get("type")
@@ -43,6 +51,15 @@ func (h *RoomHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, rooms)
 }
 
+// @Summary Get room detail
+// @Tags rooms
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Room ID"
+// @Success 200 {object} model.RoomResponse
+// @Failure 404 {object} model.ErrorResponse
+// @Failure 401 {object} model.ErrorResponse
+// @Router /rooms/{id} [get]
 func (h *RoomHandler) Get(w http.ResponseWriter, r *http.Request) {
 	paramID := r.PathValue("id")
 	roomID, err := uuid.Parse(paramID)

@@ -9,3 +9,6 @@ migrate-up-test:
 
 migrate-down:
 	migrate -database "$(DATABASE_URL)" -path migrations down
+
+swagger:
+	swag init -g cmd/api/main.go
