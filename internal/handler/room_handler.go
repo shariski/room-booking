@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -28,43 +28,44 @@ func (h *RoomHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	req := &model.GetRoomsRequest{Type: qType}
 	if err := h.Validate.Struct(req); err != nil {
-		http.Error(w, "Validation error", http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to validate request", "error", err)
+		writeError(w, model.NewErrBadRequest(err.Error()))
 		return
 	}
 
 	rooms, err := h.Usecase.List(r.Context(), req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to get list room", "error", err)
+		writeError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(rooms)
+	writeJSON(w, http.StatusOK, rooms)
 }
 
 func (h *RoomHandler) Get(w http.ResponseWriter, r *http.Request) {
 	paramID := r.PathValue("id")
 	roomID, err := uuid.Parse(paramID)
 	if err != nil {
-		http.Error(w, "Invalid room ID", http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to parse UUID", "error", err)
+		writeError(w, model.NewErrBadRequest("Invalid UUID"))
 		return
 	}
 
 	req := &model.GetRoomRequest{ID: roomID}
 
 	if err := h.Validate.Struct(req); err != nil {
-		http.Error(w, "Validation error", http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to validate request", "error", err)
+		writeError(w, model.NewErrBadRequest(err.Error()))
 		return
 	}
 
 	room, err := h.Usecase.Get(r.Context(), req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to get room", "error", err)
+		writeError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(room)
+	writeJSON(w, http.StatusOK, room)
 }

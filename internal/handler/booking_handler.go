@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -25,7 +26,8 @@ func NewBookingHandler(u *usecase.BookingUsecase, v *validator.Validate) *Bookin
 func (h *BookingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req model.CreateBookingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to decode request body", "error", err)
+		writeError(w, model.NewErrBadRequest("Invalid request body"))
 		return
 	}
 
@@ -33,26 +35,27 @@ func (h *BookingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	req.UserID = claims.ID
 
 	if err := h.Validate.Struct(req); err != nil {
-		http.Error(w, "Validation error", http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to validate request body", "error", err)
+		writeError(w, model.NewErrBadRequest(err.Error()))
 		return
 	}
 
 	booking, err := h.Usecase.Create(r.Context(), &req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to create booking", "error", err)
+		writeError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(booking)
+	writeJSON(w, http.StatusCreated, booking)
 }
 
 func (h *BookingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	paramID := r.PathValue("id")
 	bookingID, err := uuid.Parse(paramID)
 	if err != nil {
-		http.Error(w, "Invalid booking ID", http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to parse UUID", "error", err)
+		writeError(w, model.NewErrBadRequest("Invalid UUID"))
 		return
 	}
 
@@ -63,17 +66,17 @@ func (h *BookingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Validate.Struct(req); err != nil {
-		http.Error(w, "Validation error", http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to validate request", "error", err)
+		writeError(w, model.NewErrBadRequest(err.Error()))
 		return
 	}
 
 	booking, err := h.Usecase.Delete(r.Context(), req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		slog.WarnContext(r.Context(), "Failed to delete booking", "error", err)
+		writeError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(booking)
+	writeJSON(w, http.StatusOK, booking)
 }
