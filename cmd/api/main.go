@@ -15,6 +15,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/shariski/room-booking/internal/config"
 	"github.com/shariski/room-booking/internal/handler"
+	"github.com/shariski/room-booking/internal/middleware"
 	"github.com/shariski/room-booking/internal/repository"
 	"github.com/shariski/room-booking/internal/usecase"
 )
@@ -22,7 +23,7 @@ import (
 func main() {
 	config := config.Load()
 
-	dsn := fmt.Sprintf("postgres://%s:@%s:%s/%s?sslmode=disable", config.DBPassword, config.DBHost, config.DBPort, config.DBName)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		log.Fatal(err)
@@ -35,20 +36,27 @@ func main() {
 
 	validator := validator.New()
 
+	userRepository := repository.NewUserRepository(db)
 	roomRepository := repository.NewRoomRepository(db)
 	bookingRepository := repository.NewBookingRepository(db)
 
+	userUsecase := usecase.NewUserUsecase(config, userRepository)
 	roomUsecase := usecase.NewRoomUsecase(roomRepository, rdb)
 	bookingUsecase := usecase.NewBookingUsecase(bookingRepository)
 
+	userHandler := handler.NewUserHandler(userUsecase, validator)
 	roomHandler := handler.NewRoomHandler(roomUsecase, validator)
 	bookingHandler := handler.NewBookingHandler(bookingUsecase, validator)
 
+	authMiddleware := middleware.AuthMiddleware(config.JWTSecret)
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /rooms", roomHandler.List)
-	mux.HandleFunc("GET /rooms/{id}", roomHandler.Get)
-	mux.HandleFunc("POST /bookings", bookingHandler.Create)
-	mux.HandleFunc("DELETE /bookings/{id}", bookingHandler.Delete)
+	mux.HandleFunc("POST /users", userHandler.Create)
+	mux.HandleFunc("POST /login", userHandler.Login)
+	mux.Handle("GET /rooms", authMiddleware(http.HandlerFunc(roomHandler.List)))
+	mux.Handle("GET /rooms/{id}", authMiddleware(http.HandlerFunc(roomHandler.Get)))
+	mux.Handle("POST /bookings", authMiddleware(http.HandlerFunc(bookingHandler.Create)))
+	mux.Handle("DELETE /bookings/{id}", authMiddleware(http.HandlerFunc(bookingHandler.Delete)))
 
 	server := &http.Server{
 		Addr:    config.Port,

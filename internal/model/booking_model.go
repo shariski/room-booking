@@ -19,13 +19,14 @@ type BookingResponse struct {
 
 type CreateBookingRequest struct {
 	RoomID    uuid.UUID `json:"room_id"`
-	UserID    uuid.UUID `json:"user_id"`
+	UserID    uuid.UUID
 	StartDate time.Time `json:"start_date"`
 	EndDate   time.Time `json:"end_date"`
 }
 
 type DeleteBookingRequest struct {
-	ID uuid.UUID `json:"id"`
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID
 }
 
 func BookingToResponse(booking *domain.Booking) *BookingResponse {

@@ -36,7 +36,7 @@ func (u *BookingUsecase) Create(ctx context.Context, request *model.CreateBookin
 }
 
 func (u *BookingUsecase) Delete(ctx context.Context, request *model.DeleteBookingRequest) (*model.BookingResponse, error) {
-	booking, err := u.repo.Delete(ctx, request.ID)
+	booking, err := u.repo.Delete(ctx, request.ID, request.UserID)
 	if errors.Is(err, sql.ErrNoRows) {
 		slog.WarnContext(ctx, "Booking not found", "error", err)
 		return nil, err

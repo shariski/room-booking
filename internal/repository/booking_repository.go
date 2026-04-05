@@ -33,11 +33,11 @@ func (r *BookingRepository) Create(ctx context.Context, booking domain.Booking) 
 	return &booking, nil
 }
 
-func (r *BookingRepository) Delete(ctx context.Context, id uuid.UUID) (*domain.Booking, error) {
-	query := "update bookings SET deleted_at = NOW() where id = $1 AND deleted_at is null returning id, room_id, user_id, start_date, end_date, created_at, updated_at, deleted_at"
+func (r *BookingRepository) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*domain.Booking, error) {
+	query := "update bookings SET deleted_at = NOW() where id = $1 and user_id = $2 and deleted_at is null returning id, room_id, user_id, start_date, end_date, created_at, updated_at, deleted_at"
 
 	var booking domain.Booking
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRowContext(ctx, query, id, userID).Scan(
 		&booking.ID,
 		&booking.RoomID,
 		&booking.UserID,

@@ -5,39 +5,35 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"github.com/shariski/room-booking/internal/model"
 	"github.com/shariski/room-booking/internal/usecase"
 )
 
-type BookingHandler struct {
-	Usecase  *usecase.BookingUsecase
+type UserHandler struct {
+	Usecase  *usecase.UserUsecase
 	Validate *validator.Validate
 }
 
-func NewBookingHandler(u *usecase.BookingUsecase, v *validator.Validate) *BookingHandler {
-	return &BookingHandler{
+func NewUserHandler(u *usecase.UserUsecase, v *validator.Validate) *UserHandler {
+	return &UserHandler{
 		Usecase:  u,
 		Validate: v,
 	}
 }
 
-func (h *BookingHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req model.CreateBookingRequest
+func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var req model.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	claims := r.Context().Value("user").(*model.Auth)
-	req.UserID = claims.ID
 
 	if err := h.Validate.Struct(req); err != nil {
 		http.Error(w, "Validation error", http.StatusBadRequest)
 		return
 	}
 
-	booking, err := h.Usecase.Create(r.Context(), &req)
+	user, err := h.Usecase.Create(r.Context(), &req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -45,21 +41,14 @@ func (h *BookingHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(booking)
+	json.NewEncoder(w).Encode(user)
 }
 
-func (h *BookingHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	paramID := r.PathValue("id")
-	bookingID, err := uuid.Parse(paramID)
-	if err != nil {
-		http.Error(w, "Invalid booking ID", http.StatusBadRequest)
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var req model.LoginUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
-	}
-
-	claims := r.Context().Value("user").(*model.Auth)
-	req := &model.DeleteBookingRequest{
-		ID:     bookingID,
-		UserID: claims.ID,
 	}
 
 	if err := h.Validate.Struct(req); err != nil {
@@ -67,7 +56,7 @@ func (h *BookingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	booking, err := h.Usecase.Delete(r.Context(), req)
+	auth, err := h.Usecase.Login(r.Context(), &req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -75,5 +64,5 @@ func (h *BookingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(booking)
+	json.NewEncoder(w).Encode(auth)
 }

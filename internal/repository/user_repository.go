@@ -17,7 +17,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) Create(ctx context.Context, user domain.User) (*domain.User, error) {
+func (r *UserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	query := "insert into users (name, email, password_hash) values ($1, $2, $3) returning id, created_at"
 
 	err := r.db.QueryRowContext(ctx, query, user.Name, user.Email, user.PasswordHash).Scan(
@@ -29,7 +29,7 @@ func (r *UserRepository) Create(ctx context.Context, user domain.User) (*domain.
 		return nil, err
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func (r *UserRepository) Get(ctx context.Context, id uuid.UUID) (*domain.User, error) {
